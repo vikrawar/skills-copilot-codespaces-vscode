@@ -1,44 +1,20 @@
-// Creeate web server
+// Create web server
+// Create a web server that listens for requests on port 3000. When a request is received, read the comments.json file and return the comments as a JSON response.
+const http = require('http');
+const fs = require('fs');
 
-// Load the http module to create an http server.
-var http = require('http');
-var fs = require('fs');
-var url = require('url');
-var qs = require('querystring');
-
-var comments = [];
-var server = http.createServer(function (req, res) {
-    var url_parts = url.parse(req.url);
-    if (url_parts.pathname == '/') {
-        fs.readFile('./comments.html', function (err, data) {
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.write(data);
-            res.end();
-        });
+const server = http.createServer((req, res) => {
+  fs.readFile('./comments.json', 'utf8', (err, data) => {
+    if (err) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('Internal Server Error');
+    } else {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(data);
     }
-    else if (url_parts.pathname == '/comment') {
-        var body = '';
-        req.on('data', function (data) {
-            body += data;
-            if (body.length > 1e6) {
-                req.connection.destroy();
-            }
-        });
-        req.on('end', function () {
-            var post = qs.parse(body);
-            comments.push(post.comment);
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end('Thanks for your comment\n');
-        });
-    }
-    else if (url_parts.pathname == '/getComments') {
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end(JSON.stringify(comments));
-    }
-    else {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end('Page not found\n');
-    }
+  });
 });
-server.listen(8080);
-console.log('Server is listening on port 8080');
+
+server.listen(3000, () => {
+  console.log('Server listening on port 3000');
+});
